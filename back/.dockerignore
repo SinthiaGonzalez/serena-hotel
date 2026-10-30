@@ -1,0 +1,5 @@
+node_modules
+.env
+CredencialesGmailApi.json
+tests
+Serena-Hotel-

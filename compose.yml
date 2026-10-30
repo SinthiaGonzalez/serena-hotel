@@ -1,0 +1,51 @@
+# Serena Hotel en producción: docker compose up -d --build
+# Las variables salen del archivo .env de esta carpeta (plantilla: .env.produccion.example)
+name: serena-hotel
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    mem_limit: 256m
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      retries: 5
+
+  api:
+    build: ./back
+    restart: unless-stopped
+    mem_limit: 256m
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      PORT: 3001
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./client
+      args:
+        VITE_API_URL: /api/
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID}
+        VITE_CLOUDINARY_CLOUD: ${VITE_CLOUDINARY_CLOUD}
+        VITE_CLOUDINARY_PRESET: ${VITE_CLOUDINARY_PRESET}
+    restart: unless-stopped
+    mem_limit: 64m
+    # Solo accesible desde el propio servidor: desde fuera se entra por el túnel
+    ports:
+      - "127.0.0.1:8282:80"
+    depends_on:
+      - api
+
+volumes:
+  db-data:

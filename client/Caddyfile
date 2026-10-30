@@ -1,0 +1,20 @@
+# El HTTPS lo pone Cloudflare: aquí llega HTTP plano desde el túnel
+:80 {
+	encode zstd gzip
+
+	# El back vive en /api: Caddy quita el prefijo y se lo pasa al contenedor "api"
+	handle_path /api/* {
+		reverse_proxy api:3001 {
+			# IP real del visitante (la pone Cloudflare); el back la usa para el rate limit
+			header_up X-Forwarded-For {http.request.header.CF-Connecting-IP}
+		}
+	}
+
+	# Front: archivos compilados de Vite; cualquier otra ruta la resuelve React Router
+	handle {
+		root * /srv
+		header /assets/* Cache-Control "public, max-age=31536000, immutable"
+		try_files {path} /index.html
+		file_server
+	}
+}
