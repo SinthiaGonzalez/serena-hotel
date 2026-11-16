@@ -1,4 +1,5 @@
 import React from "react";
+import axios from "axios";
 import { subirImagen } from "../../cloudinary";
 import { useEffect, useState } from "react";
 import validation from "../CrearHabitaciones/validation";
@@ -7,7 +8,6 @@ import {
   updateHabitacion,
   getHabitacionesbackup,
   deleteHabitacion,
-  DetailHabitaciones,
 } from "../../redux/Actions/actions";
 import { Select, Option } from "@material-tailwind/react";
 import Swal from "sweetalert2";
@@ -67,13 +67,26 @@ const UpdateHabitacion = () => {
     estado: "Disponible",
   });
 
-  const habitacionDetail = useSelector((state) => state.habitacionesDetail);
-
-  const handlerselectHabitacion = (e) => {
-    setSeleccionhabitacion(e);
-    setNuevaDataHabitacion({ ...nuevaDataHabitacion, nombreId: e });
-    dispatch(DetailHabitaciones(e));
-    handleDefaultValues();
+  // Trae la habitación elegida y carga sus datos en el formulario.
+  // (Antes se leía del store antes de que llegara la respuesta, así que cargaba
+  // la habitación elegida previamente, o nada, y el id se perdía.)
+  const handlerselectHabitacion = async (id) => {
+    setSeleccionhabitacion(id);
+    try {
+      const { data } = await axios.get(`/habitaciones/${id}`);
+      setNuevaDataHabitacion({
+        nombreId: data.id,
+        nombre: data.nombre,
+        precio: data.precio,
+        imagenes: [...data.imagenes],
+        servicios: data.servicios.map((s) => ({ ...s })),
+        descripcion: data.descripcion,
+        estado: data.estado,
+      });
+      setErrors({});
+    } catch (error) {
+      Swal.fire("No se pudo cargar la habitación", error.message, "error");
+    }
   };
 
   const isSubmitDisabled = () => {
@@ -89,12 +102,10 @@ const UpdateHabitacion = () => {
   };
 
   const handleChangeServicio = (index, event) => {
-    const updatedServicios = [...nuevaDataHabitacion.servicios]; // Create a copy of the servicios array
-    if (index === 3) {
-      updatedServicios[index].descripcion = event.target.value + " m²";
-    } else {
-      updatedServicios[index].descripcion = event.target.value; // Update the descripcion at the specified index
-    }
+    const { value } = event.target;
+    const updatedServicios = nuevaDataHabitacion.servicios.map((s, i) =>
+      i === index ? { ...s, descripcion: index === 3 ? `${value} m²` : value } : s
+    );
     setNuevaDataHabitacion({
       ...nuevaDataHabitacion,
       servicios: updatedServicios,
@@ -150,22 +161,9 @@ const UpdateHabitacion = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (Object.keys(errors).length === 0) {
+      // No se limpia el formulario: borraba el id antes de confirmar y el
+      // siguiente intento iba sin id (error 500)
       dispatch(updateHabitacion(nuevaDataHabitacion));
-      setNuevaDataHabitacion({
-        nombre: "",
-        precio: "",
-        imagenes: [],
-        servicios: [
-          { icono: "sensor_door", descripcion: "" },
-          { icono: "person", descripcion: "" },
-          { icono: "bed", descripcion: "" },
-          { icono: "home", descripcion: "" },
-          { icono: "local_bar", descripcion: "Minibar" },
-          { icono: "wifi", descripcion: "Wifi" },
-        ],
-        descripcion: "",
-        estado: "Disponible",
-      });
     } else {
       Swal.fire("Errores de validacion", errors, "error");
     }
@@ -198,30 +196,9 @@ const UpdateHabitacion = () => {
 
   const handlerdeleteHabitacion = (e) => {
     e.preventDefault();
-    dispatch(deleteHabitacion(habitacionDetail[0].id));
+    dispatch(deleteHabitacion(nuevaDataHabitacion.nombreId));
     dispatch(getHabitacionesbackup());
   };
-
-  const handleDefaultValues = () => {
-    console.log("default values", habitacionDetail);
-    habitacionDetail[0].servicios[3].descripcion =
-      habitacionDetail[0].servicios[3].descripcion.substring(
-        0,
-        habitacionDetail[0].servicios[3].descripcion.length - 3
-      );
-    if (habitacionDetail) {
-      setNuevaDataHabitacion({
-        nombreId: habitacionDetail[0].id,
-        nombre: habitacionDetail[0].nombre,
-        precio: habitacionDetail[0].precio,
-        imagenes: habitacionDetail[0].imagenes,
-        servicios: habitacionDetail[0].servicios,
-        descripcion: habitacionDetail[0].descripcion,
-        estado: habitacionDetail[0].estado,
-      });
-    }
-  };
-  console.log("auxilio", nuevaDataHabitacion);
 
   return (
     <div className="bg-verde p-8 rounded-lg mx-4 my-16">
@@ -391,9 +368,10 @@ const UpdateHabitacion = () => {
                       min="0"
                       name="m2"
                       placeholder="m²"
-                      defaultValue={
-                        nuevaDataHabitacion.servicios[3].descripcion
-                      }
+                      value={nuevaDataHabitacion.servicios[3].descripcion.replace(
+                        /\s*m²$/,
+                        ""
+                      )}
                     />
                   }
                 </p>
@@ -452,7 +430,6 @@ const UpdateHabitacion = () => {
             className="w-full mt-2  select-none rounded-lg bg-naranja py-3.5 px-7 text-center align-middle font-inter text-base font-bold uppercase text-blanco transition-all focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none border-2 border-naranja hover:border-blanco"
             type="submit"
             disabled={isSubmitDisabled()}
-            onClick={handleSubmit}
           >
             Editar
           </button>

@@ -401,32 +401,34 @@ export function updateHabitacion(habitacionData) {
         denyButtonColor: "#322F2C",
       }).then(async (result) => {
         if (result.isConfirmed) {
-          const response = await axios.put(
-            "/update/habitaciones",
-            habitacionData
-          );
-          console.log(response.data);
-          if (
-            response.data === "Ya existe un usuario con ese correo" ||
-            response.data === "No se encontro el usuario"
-          ) {
+          // El try/catch de afuera no atrapa errores de este callback: los manejamos acá
+          try {
+            const response = await axios.put(
+              "/update/habitaciones",
+              habitacionData
+            );
             Swal.fire({
-              title: response.data,
+              title: "Habitacion editada exitosamente!",
+              icon: "success",
+              confirmButtonColor: "#FB350C",
+              iconColor: "#FB350C",
+            });
+            dispatch({
+              type: "UPDATE_HABITACION",
+              payload: response.data,
+            });
+          } catch (error) {
+            const data = error.response?.data;
+            Swal.fire({
+              title: "No se pudo editar la habitación",
+              text:
+                (typeof data === "string" ? data : data?.error) ||
+                error.message,
               icon: "error",
               confirmButtonColor: "#FB350C",
               iconColor: "#FB350C",
             });
           }
-          Swal.fire({
-            title: "Habitacion editada exitosamente!",
-            icon: "success",
-            confirmButtonColor: "#FB350C",
-            iconColor: "#FB350C",
-          });
-          dispatch({
-            type: "UPDATE_HABITACION",
-            payload: response.data,
-          });
         } else if (result.isDenied) {
           Swal.fire({
             title: "No se edito la habitacion",

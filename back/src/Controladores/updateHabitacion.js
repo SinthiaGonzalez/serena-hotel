@@ -10,14 +10,15 @@ const updateHabitacion = async (
   descripcion,
   estado) => {
 
-    console.log("aqui", nombreId, nombre, precio, imagenes, servicios, descripcion, estado);
+    if (!nombreId) {
+      return 'No existe una habitacion con ese nombre';
+    }
 
     let habitacion = await Habitaciones.findOne({
       where: {
         id: nombreId,
       }
     });
-    console.log("este", habitacion);
 
     if (!habitacion) {
       return 'No existe una habitacion con ese nombre' ;
