@@ -50,7 +50,7 @@ const CreateComentPage = () => {
     nombre: name,
     contenido: e.target.comentarios.value,
     puntuacion: rating,
-    idUsuario: localStorage.getItem("userId"),
+    idUsuario: JSON.parse(localStorage.getItem("userId") || "null"),
     };
     dispatch(postComent(comentario));
 

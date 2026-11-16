@@ -561,32 +561,35 @@ export function updateUsuario(usuarioData, id) {
         denyButtonColor: "#322F2C",
       }).then(async (result) => {
         if (result.isConfirmed) {
-          const response = await axios.put(
-            `/update/usuarios/${id}`,
-            usuarioData
-          );
-          if (
-            response.data === "No se encontro el usuario" ||
-            response.data === "Ya existe un usuario con ese correo"
-          )
-            Swal.fire({
-              title: response.data,
-              icon: "error",
-              confirmButtonColor: "#FB350C",
-              iconColor: "#FB350C",
-            });
-          else
+          // El try/catch de afuera no atrapa errores de este callback: los manejamos acá
+          try {
+            const response = await axios.put(
+              `/update/usuarios/${id}`,
+              usuarioData
+            );
             Swal.fire({
               title: "Se editaron sus datos!",
               icon: "success",
               confirmButtonColor: "#FB350C",
               iconColor: "#FB350C",
             });
-          console.log(response.data);
-          dispatch({
-            type: "UPDATE_USUARIO",
-            payload: response.data,
-          });
+            dispatch({
+              type: "UPDATE_USUARIO",
+              payload: response.data,
+            });
+          } catch (error) {
+            const data = error.response?.data;
+            Swal.fire({
+              title: "No se pudieron guardar los cambios",
+              text:
+                (typeof data === "string"
+                  ? data
+                  : data?.error || data?.message) || error.message,
+              icon: "error",
+              confirmButtonColor: "#FB350C",
+              iconColor: "#FB350C",
+            });
+          }
         } else if (result.isDenied) {
           Swal.fire({
             title: "No se guardaron los cambios",

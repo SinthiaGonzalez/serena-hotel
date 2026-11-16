@@ -16,7 +16,7 @@ import Swal from "sweetalert2";
 const UpdateUsuario = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const userId = localStorage.getItem("userId");
+  const userId = JSON.parse(localStorage.getItem("userId") || "null");
   const isAdmin = localStorage.getItem("isAdmin");
   console.log("aquiiiiiiiiiiii", userId);
 
