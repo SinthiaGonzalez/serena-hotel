@@ -158,8 +158,7 @@ const NavBarHome = () => {
           {!token ? (
             <a
               href="/logearse"
-              className="select-none rounded-lg bg-naranja py-1.5 px-7 text-center align-middle font-inter text-base font-bold uppercase text-blanco transition-all focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none border-2 border-naranja hover:border-blanco"
-              type="button"
+              className="inline-block select-none rounded-lg bg-naranja py-1.5 px-7 text-center align-middle font-inter text-base font-bold uppercase text-blanco transition-all focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none border-2 border-naranja hover:border-blanco"
             >
               INICIAR SESIÓN
             </a>

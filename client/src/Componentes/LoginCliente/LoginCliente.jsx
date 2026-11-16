@@ -177,8 +177,7 @@ const LoginCliente = () => {
             <div className="p-6">
               <a
                 href="/registrarse"
-                className="w-5/6 mb-0 mt-2 lg:mb-4 select-none rounded-lg py-3.5 lg:px-7 text-center align-middle font-inter text-base font-bold uppercase text-naranja transition-all focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none border-2 border-naranja hover:border-blanco"
-                type="button"
+                className="inline-block w-5/6 mb-0 mt-2 lg:mb-4 select-none rounded-lg py-3.5 lg:px-7 text-center align-middle font-inter text-base font-bold uppercase text-naranja transition-all focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none border-2 border-naranja hover:border-blanco"
               >
                 REGÍSTRATE AHORA
               </a>
